@@ -1,0 +1,16 @@
+port: 4222
+
+jetstream: enabled
+
+authorization {
+  users = [
+    {
+      user: "user-service"
+      password: "<USER_SERVICE_NATS_PASSWORD>"
+    },
+    {
+      user: "notification-service"
+      password: "<NOTIFICATION_SERVICE_NATS_PASSWORD>"
+    }
+  ]
+}

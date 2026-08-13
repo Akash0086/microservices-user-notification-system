@@ -1,0 +1,124 @@
+services:
+
+  mysql:
+    image: mysql:8.0
+    container_name: microservices-mysql
+
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: user_db
+
+    ports:
+      - "3307:3306"
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-uroot",
+          "-proot"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+
+  nats:
+    image: nats:latest
+    container_name: microservices-nats
+
+    command:
+      - "-c"
+      - "/etc/nats/nats.conf"
+      - "-m"
+      - "8222"
+
+    volumes:
+      - ./nats/nats.conf:/etc/nats/nats.conf:ro
+
+    ports:
+      - "4222:4222"
+
+
+  user-service:
+    build: ./user-service
+    container_name: user-service
+
+    environment:
+      PORT: 3001
+
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: user_db
+
+      NATS_URL: nats://nats:4222
+      NATS_USER: user-service
+      NATS_PASSWORD: user-service-secret
+
+      JWT_SECRET: ${JWT_SECRET}
+      SERVICE_TOKEN: ${SERVICE_TOKEN}
+
+    ports:
+      - "3001:3001"
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+      nats:
+        condition: service_started
+
+
+  notification-service:
+    build: ./notification-service
+    container_name: notification-service
+
+    environment:
+      NATS_URL: nats://nats:4222
+      NATS_USER: notification-service
+      NATS_PASSWORD: notification-service-secret
+
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: notification_db
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+      nats:
+        condition: service_started
+
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+
+    environment:
+      PORT: 3000
+
+      USER_SERVICE_URL: http://user-service:3001
+
+      JWT_SECRET:  ${JWT_SECRET}
+      SERVICE_TOKEN: ${SERVICE_TOKEN}
+
+    ports:
+      - "3000:3000"
+
+    depends_on:
+      user-service:
+        condition: service_started
+
+
+volumes:
+  mysql_data:

@@ -1,0 +1,22 @@
+CREATE DATABASE IF NOT EXISTS user_db;
+CREATE DATABASE IF NOT EXISTS notification_db;
+
+USE user_db;
+
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS outbox_events (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    event_id CHAR(36) NOT NULL UNIQUE,
+    event_type VARCHAR(100) NOT NULL,
+    payload JSON NOT NULL,
+    status ENUM('pending', 'published') NOT NULL DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    published_at TIMESTAMP NULL
+);
