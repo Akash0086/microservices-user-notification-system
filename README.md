@@ -64,7 +64,7 @@ The User Service and Notification Service communicate asynchronously through NAT
                                 │ MySQL           │
                                 │ processed_events│
                                 └─────────────────┘
-````
+```text
 
 ---
 
@@ -466,15 +466,22 @@ cd microservices-user-notification-system
 
 ## 2. Configure environment variables
 
-Create the required `.env` files using the provided `.env.example` files.
+For Docker Compose, create a `.env` file in the project root based on `.env.example`.
 
-Do not commit actual `.env` files.
+The root `.env` contains shared configuration such as:
+
+- `JWT_SECRET`
+- `SERVICE_TOKEN`
+
+Do not commit the actual `.env` file.
+
+For local development, each service can also have its own `.env` file based on its `.env.example`.
 
 The following values must match between services:
 
-* `JWT_SECRET` must be the same between the User Service and API Gateway.
-* `SERVICE_TOKEN` must be the same between the API Gateway and User Service.
-* NATS credentials must match the credentials configured in NATS.
+- `JWT_SECRET` must be the same between the User Service and API Gateway.
+- `SERVICE_TOKEN` must be the same between the API Gateway and User Service.
+- NATS credentials must match the credentials configured in NATS.
 
 ---
 
